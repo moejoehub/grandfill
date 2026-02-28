@@ -109,10 +109,8 @@ canvas{display:block;user-select:none;touch-action:none;cursor:crosshair}
 .timer-hud.frozen .timer-num{color:#0EA5E9}
 @keyframes tpulse{0%{opacity:1}100%{opacity:.45}}
 /* SUPERPOWERS */
-.sp-row{display:none;gap:8px;margin-top:8px;flex-shrink:0;align-items:center;flex-wrap:wrap;width:100%;max-width:400px;position:relative;justify-content:center}
+.sp-row{display:none;gap:8px;margin-top:8px;flex-shrink:0;align-items:center;flex-wrap:wrap;width:100%;max-width:400px;justify-content:center}
 .sp-row.visible{display:flex}
-.sp-reset{position:absolute;left:0;background:transparent;border:2px solid var(--border);color:var(--text3);font-family:'Nunito',sans-serif;font-size:.65rem;font-weight:700;padding:6px 10px;cursor:pointer;border-radius:50px;transition:all .15s;white-space:nowrap}
-.sp-reset:hover{border-color:#6B7280;color:#374151}
 .sp-btn{display:flex;flex-direction:column;align-items:center;gap:2px;background:var(--bg2);border:2.5px solid var(--border);color:var(--text2);font-family:'Nunito',sans-serif;font-weight:800;padding:7px 14px;cursor:pointer;border-radius:14px;transition:all .2s;box-shadow:0 2px 8px var(--shadow);min-width:72px;position:relative;overflow:hidden}
 .sp-btn:hover{transform:translateY(-2px);box-shadow:0 4px 14px var(--shadow)}
 .sp-btn .sp-icon{font-size:1.4rem;line-height:1}
@@ -237,7 +235,9 @@ canvas{display:block;user-select:none;touch-action:none;cursor:crosshair}
   <div class="ctrl-row" id="slideCtrls" style="display:none"><!-- keep for fill compat --></div>
   <!-- SUPERPOWERS ROW (directly below board) -->
   <div class="sp-row" id="spRow">
-    <button class="sp-reset" onclick="retryLevel()">↺ Reset</button>
+    <button class="sp-btn" id="spReset" onclick="retryLevel()">
+      <span class="sp-icon">↺</span><span class="sp-lbl">Reset</span>
+    </button>
     <button class="sp-btn" id="spReverse" onclick="spUseReverse()">
       <span class="sp-icon">🔄</span><span class="sp-lbl">Reverse</span>
     </button>
@@ -865,14 +865,14 @@ function drawSlide(){
     rRect(ctx,gp.x-gw2/2,gp.y-gh2/2,gw2,gh2,Math.min(gw2,gh2)/2);
     ctx.fill();
 
-    // Arrow pointing inward
+    // Arrow pointing outward (exit gates)
     ctx.fillStyle='rgba(255,255,255,.85)';
     const as=Math.min(gw2,gh2)*.28;
     let ax=gp.x,ay=gp.y,adx=0,ady=0;
-    if(gate.side==='top')ady=1;
-    else if(gate.side==='bottom')ady=-1;
-    else if(gate.side==='left')adx=1;
-    else adx=-1;
+    if(gate.side==='top')ady=-1;
+    else if(gate.side==='bottom')ady=1;
+    else if(gate.side==='left')adx=-1;
+    else adx=1;
     drawTri(ctx,ax,ay,adx,ady,as);
 
     ctx.shadowBlur=0;
@@ -1204,7 +1204,7 @@ function multiSnakeBFS(initSnakes, targetIdx, sz, maxStates){
   const gr=gate.side==='top'?0:gate.side==='bottom'?sz-1:gate.pos;
   const gc2=gate.side==='left'?0:gate.side==='right'?sz-1:gate.pos;
 
-  const start=initSnakes.map(s=>({cells:s.cells.map(c=>({...c})),dead:s.dead||false}));
+  const start=initSnakes.map(s=>({...s,cells:s.cells.map(c=>({...c})),dead:s.dead||false}));
   const sh=start[targetIdx].cells[0];
   if(sh.r===gr&&sh.c===gc2)return[];
 
@@ -1242,7 +1242,7 @@ function multiSnakeBFS(initSnakes, targetIdx, sz, maxStates){
 
         // Build new snakes (cheap copy — only change si)
         const newSnakes=snakes.map((os,oi)=>oi!==si?os:
-          {cells:[{r:nr,c:nc},...os.cells.slice(0,-1)],dead:false});
+          {...os,cells:[{r:nr,c:nc},...os.cells.slice(0,-1)],dead:false});
 
         const newPlan=[...plan,{snakeIdx:si,r:nr,c:nc}];
 
@@ -1265,34 +1265,24 @@ function planAutoClear(){
   if(!alive.length)return null;
   const sz=gridSize;
 
-  // Score by distance to gate for ordering heuristics
-  const scored=alive.map((s,i)=>{
-    const gate=lvlDef.gates.find(g=>g.colorKey===s.colorKey);
-    if(!gate)return{i,d:999};
-    const gr=gate.side==='top'?0:gate.side==='bottom'?sz-1:gate.pos;
-    const gc2=gate.side==='left'?0:gate.side==='right'?sz-1:gate.pos;
-    const h=s.cells[0];
-    return{i,d:Math.abs(h.r-gr)+Math.abs(h.c-gc2)};
-  }).sort((a,b)=>a.d-b.d);
+  // Try each snake as the sole target — pick the one with the shortest plan
+  let bestResult=null, bestLen=Infinity;
 
-  const base=scored.map(s=>s.i);
-  // Try: closest-first, farthest-first, and all rotations
-  const orders=[
-    base,
-    [...base].reverse(),
-    ...base.map((_,k)=>k>0?[...base.slice(k),...base.slice(0,k)]:[]).filter(o=>o.length),
-  ];
-
-  for(const order of orders){
-    const result=tryOrderMS(alive,order,sz);
-    if(result)return result;
+  for(let ti=0;ti<alive.length;ti++){
+    const ws=alive.map(s=>({...s,cells:s.cells.map(c=>({...c})),dead:false}));
+    const moves=multiSnakeBFS(ws,ti,sz,25000);
+    if(moves&&moves.length<bestLen){
+      bestLen=moves.length;
+      bestResult={plan:moves,snakes:alive,targetIdx:ti};
+    }
   }
-  return null;
+
+  return bestResult;
 }
 
 // Try clearing snakes in given order, using full multi-snake BFS per step.
 function tryOrderMS(alive,order,sz){
-  let ws=alive.map(s=>({cells:s.cells.map(c=>({...c})),dead:false}));
+  let ws=alive.map(s=>({...s,cells:s.cells.map(c=>({...c})),dead:false}));
   const fullPlan=[];
 
   for(const ti of order){
@@ -1332,21 +1322,15 @@ function spUseAuto(){
       return;
     }
 
-    const{plan,snakes}=result;
-    setStatus('🤖 Solving...');
-
-    // Track which snakes still need gate exit (those that finish their path moves)
-    const exited=new Set();
+    const{plan,snakes,targetIdx}=result;
+    const targetSnake=snakes[targetIdx];
+    setStatus('🤖 Clearing '+targetSnake.colorKey+'...');
 
     function doStep(i){
       if(i>=plan.length){
-        // Trigger gate exit for all snakes that finished their moves but haven't exited
-        snakes.forEach((s,si)=>{
-          if(!s.dead&&!s.exiting&&!exited.has(si)){
-            const gate=lvlDef.gates.find(g=>g.colorKey===s.colorKey);
-            if(gate){exited.add(si);destroySnake(s,gate);}
-          }
-        });
+        // Exit only the target snake
+        const gate=lvlDef.gates.find(g=>g.colorKey===targetSnake.colorKey);
+        if(gate&&!targetSnake.dead&&!targetSnake.exiting)destroySnake(targetSnake,gate);
         spAutoRunning=false;
         document.getElementById('spAuto').classList.remove('disabled');
         document.getElementById('spReverse').classList.remove('disabled');
@@ -1355,28 +1339,9 @@ function spUseAuto(){
       const step=plan[i];
       const snake=snakes[step.snakeIdx];
       if(!snake||snake.dead||snake.exiting){doStep(i+1);return;}
-      if(step.reverse){snake.cells.reverse();drawSlide();setTimeout(()=>doStep(i+1),80);return;}
-
-      // Check if this snake has reached its gate cell on this move
-      const gate=lvlDef.gates.find(g=>g.colorKey===snake.colorKey);
-      const gr=gate?gate.side==='top'?0:gate.side==='bottom'?gridSize-1:gate.pos:null;
-      const gc2=gate?gate.side==='left'?0:gate.side==='right'?gridSize-1:gate.pos:null;
-
       moveSnakeEnd(snake,'head',step.r,step.c);
       startLoop();
-
-      // If next step is a different snake or end of plan, check if this snake should exit
-      const nextStep=plan[i+1];
-      const isLastForThisSnake=!nextStep||nextStep.snakeIdx!==step.snakeIdx;
-      if(isLastForThisSnake&&gate&&step.r===gr&&step.c===gc2&&!exited.has(step.snakeIdx)){
-        setTimeout(()=>{
-          exited.add(step.snakeIdx);
-          destroySnake(snake,gate);
-          setTimeout(()=>doStep(i+1),TWEEN_MS+60);
-        },TWEEN_MS+40);
-      } else {
-        setTimeout(()=>doStep(i+1), TWEEN_MS+40);
-      }
+      setTimeout(()=>doStep(i+1), TWEEN_MS+40);
     }
     doStep(0);
   },20);
