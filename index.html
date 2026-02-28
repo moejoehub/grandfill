@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>Grand Fill</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=IBM+Plex+Mono:wght@500;700&display=swap" rel="stylesheet">
 <style>
@@ -66,7 +66,7 @@ body{display:flex;align-items:center;justify-content:center}
 .tc8{background:linear-gradient(135deg,#F7971E,#FFD200)}
 .tc9{background:linear-gradient(135deg,#11998E,#38EF7D)}
 /* GAME */
-#gameScreen{justify-content:flex-start;padding:10px 14px;gap:0}
+#gameScreen{justify-content:flex-start;padding:10px max(20px,env(safe-area-inset-right,20px)) max(20px,env(safe-area-inset-bottom,20px)) max(20px,env(safe-area-inset-left,20px));gap:0}
 .g-top{width:100%;max-width:520px;display:flex;align-items:center;justify-content:space-between;padding:10px 0 6px;flex-shrink:0}
 .g-left .g-lnum{font-size:.6rem;font-family:'IBM Plex Mono',monospace;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:1px}
 .g-left .g-lname{font-size:.9rem;font-weight:800}
@@ -78,7 +78,7 @@ body{display:flex;align-items:center;justify-content:center}
 .g-ibtn{background:var(--bg2);border:2px solid var(--border);color:var(--text2);width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:50%;font-size:.88rem;transition:all .15s;box-shadow:0 2px 6px var(--shadow)}
 .g-ibtn:hover{border-color:var(--text3);color:var(--text);transform:scale(1.06)}
 /* HUD */
-.hud-wrap{width:100%;max-width:520px;display:flex;justify-content:center;margin-bottom:8px;flex-shrink:0;min-height:62px;align-items:center}
+.hud-wrap{width:100%;max-width:520px;display:flex;justify-content:center;margin-bottom:8px;flex-shrink:0;min-height:62px;align-items:center;position:relative}
 .hud-counter{display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg2);border:3px solid var(--border);border-radius:20px;padding:8px 32px;box-shadow:0 4px 16px var(--shadow);transition:all .3s cubic-bezier(.34,1.56,.64,1);opacity:0;transform:scale(.75) translateY(-6px);pointer-events:none;min-width:130px}
 .hud-counter.visible{opacity:1;transform:scale(1) translateY(0)}
 .hud-counter.match{border-color:#6BCB77;background:linear-gradient(135deg,#6BCB77,#4ECDC4);box-shadow:0 6px 24px rgba(107,203,119,.45);animation:mb .35s cubic-bezier(.34,1.56,.64,1)}
@@ -88,10 +88,7 @@ body{display:flex;align-items:center;justify-content:center}
 .hud-lbl{font-size:.58rem;font-family:'IBM Plex Mono',monospace;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);margin-top:1px;transition:color .2s}
 .hud-counter.match .hud-lbl{color:rgba(255,255,255,.8)}
 /* Slide HUD */
-.slide-hud{display:none;flex-direction:column;align-items:center;justify-content:center;background:var(--bg2);border:3px solid var(--border);border-radius:20px;padding:8px 32px;box-shadow:0 4px 16px var(--shadow);min-width:130px}
-.slide-hud.visible{display:flex}
-.slide-hud-num{font-size:2.2rem;font-weight:900;font-family:'IBM Plex Mono',monospace;color:var(--text);line-height:1}
-.slide-hud-lbl{font-size:.58rem;font-family:'IBM Plex Mono',monospace;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);margin-top:1px}
+
 /* CANVAS */
 .c-wrap{border:3px solid var(--border);border-radius:16px;overflow:hidden;background:#fff;flex-shrink:0;box-shadow:0 4px 20px var(--shadow)}
 canvas{display:block;user-select:none;touch-action:none;cursor:crosshair}
@@ -103,6 +100,35 @@ canvas{display:block;user-select:none;touch-action:none;cursor:crosshair}
 .c-btn{background:var(--bg2);border:2px solid var(--border);color:var(--text2);font-family:'Nunito',sans-serif;font-size:.75rem;font-weight:700;padding:7px 18px;cursor:pointer;border-radius:50px;transition:all .15s;box-shadow:0 2px 6px var(--shadow)}
 .c-btn:hover{border-color:var(--text3);color:var(--text)}
 .c-btn.rd:hover{border-color:#EF4444;color:#EF4444}
+
+/* TIMER HUD */
+.timer-hud{display:none;flex-direction:column;align-items:center;gap:0;position:absolute;left:50%;transform:translateX(-50%)}
+.timer-hud.visible{display:flex}
+.timer-num{font-size:2.6rem;font-weight:900;font-family:'IBM Plex Mono',monospace;color:var(--text);line-height:1;transition:color .3s}
+.timer-hud.urgent .timer-num{color:#EF4444;animation:tpulse .6s ease-in-out infinite alternate}
+.timer-hud.frozen .timer-num{color:#0EA5E9}
+@keyframes tpulse{0%{opacity:1}100%{opacity:.45}}
+/* SUPERPOWERS */
+.sp-row{display:none;gap:8px;margin-top:8px;flex-shrink:0;align-items:center;flex-wrap:wrap;width:100%;max-width:400px;position:relative;justify-content:center}
+.sp-row.visible{display:flex}
+.sp-reset{position:absolute;left:0;background:transparent;border:2px solid var(--border);color:var(--text3);font-family:'Nunito',sans-serif;font-size:.65rem;font-weight:700;padding:6px 10px;cursor:pointer;border-radius:50px;transition:all .15s;white-space:nowrap}
+.sp-reset:hover{border-color:#6B7280;color:#374151}
+.sp-btn{display:flex;flex-direction:column;align-items:center;gap:2px;background:var(--bg2);border:2.5px solid var(--border);color:var(--text2);font-family:'Nunito',sans-serif;font-weight:800;padding:7px 14px;cursor:pointer;border-radius:14px;transition:all .2s;box-shadow:0 2px 8px var(--shadow);min-width:72px;position:relative;overflow:hidden}
+.sp-btn:hover{transform:translateY(-2px);box-shadow:0 4px 14px var(--shadow)}
+.sp-btn .sp-icon{font-size:1.4rem;line-height:1}
+.sp-btn .sp-lbl{font-size:.55rem;letter-spacing:.06em;text-transform:uppercase;color:var(--text3)}
+.sp-btn .sp-uses{position:absolute;top:4px;right:6px;font-size:.55rem;font-weight:900;color:var(--text3)}
+.sp-btn.active{border-color:#E91E8C;background:#FFF0F7;color:#E91E8C}
+.sp-btn.active .sp-lbl{color:#E91E8C}
+.sp-btn.frozen-active{border-color:#38BDF8;background:#F0F9FF;color:#0EA5E9}
+.sp-btn.frozen-active .sp-lbl{color:#0EA5E9}
+.sp-btn.disabled{opacity:.38;pointer-events:none}
+/* RESET BTN in slide controls */
+.c-btn.reset{border-color:#6B7280;color:#6B7280}
+.c-btn.reset:hover{border-color:#374151;color:#374151}
+/* EDITOR TIME ROW */
+.ed-time-row{display:flex;align-items:center;gap:6px}
+.ed-time-input{width:64px;font-family:'IBM Plex Mono',monospace;font-size:.75rem;font-weight:700;background:var(--bg2);border:2px solid var(--border);color:var(--text2);padding:5px 8px;border-radius:10px;outline:none;text-align:center}
 /* WIN */
 .ovl{position:fixed;inset:0;background:rgba(255,248,240,.88);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;z-index:300;backdrop-filter:blur(10px);padding:20px}
 .ovl.show{opacity:1;pointer-events:all}
@@ -200,7 +226,7 @@ canvas{display:block;user-select:none;touch-action:none;cursor:crosshair}
   </div>
   <div class="hud-wrap">
     <div class="hud-counter" id="hudCounter"><div class="hud-num" id="hudNum">0</div><div class="hud-lbl" id="hudLbl">CELLS</div></div>
-    <div class="slide-hud" id="slideHud"><div class="slide-hud-num" id="slideMovesNum">0</div><div class="slide-hud-lbl">MOVES</div></div>
+    <div class="timer-hud" id="timerHud"><div class="timer-num" id="timerNum">3:00</div></div>
   </div>
   <div class="c-wrap" id="cwrap"><canvas id="gc"></canvas></div>
   <div class="g-status" id="gst">Drag to draw</div>
@@ -208,9 +234,20 @@ canvas{display:block;user-select:none;touch-action:none;cursor:crosshair}
     <button class="c-btn" onclick="undoLast()">↩ Undo Last</button>
     <button class="c-btn rd" onclick="clearAll()">✕ Clear All</button>
   </div>
-  <div class="ctrl-row" id="slideCtrls" style="display:none">
-    <button class="c-btn" onclick="retryLevel()">↺ Reset</button>
-    <button class="c-btn" id="dragToggleBtn" onclick="toggleDragMode()" style="border-color:#E91E8C;color:#E91E8C">🐍 Head Only</button>
+  <div class="ctrl-row" id="slideCtrls" style="display:none"><!-- keep for fill compat --></div>
+  <!-- SUPERPOWERS ROW (directly below board) -->
+  <div class="sp-row" id="spRow">
+    <button class="sp-reset" onclick="retryLevel()">↺ Reset</button>
+    <button class="sp-btn" id="spReverse" onclick="spUseReverse()">
+      <span class="sp-icon">🔄</span><span class="sp-lbl">Reverse</span>
+    </button>
+    <button class="sp-btn" id="spAuto" onclick="spUseAuto()">
+      <span class="sp-icon">🤖</span><span class="sp-lbl">Auto-Clear</span>
+    </button>
+    <button class="sp-btn" id="spFreeze" onclick="spUseFreeze()">
+      <span class="sp-icon">❄️</span><span class="sp-lbl">Freeze</span>
+      <span class="sp-uses" id="spFreezeTimer"></span>
+    </button>
   </div>
 </div>
 <!-- WIN -->
@@ -221,12 +258,11 @@ canvas{display:block;user-select:none;touch-action:none;cursor:crosshair}
     <div class="w-sub" id="wsub"></div>
     <div class="w-stars"><span class="w-star" id="ws1">★</span><span class="w-star" id="ws2">★</span><span class="w-star" id="ws3">★</span></div>
     <div class="w-stats">
-      <div class="w-stat"><strong id="wmov">0</strong>Regions</div>
       <div class="w-stat"><strong id="wtim">0s</strong>Time</div>
     </div>
     <div class="w-acts">
       <button class="w-btn sec" onclick="retryLevel()">↺ Retry</button>
-      <button class="w-btn sec" onclick="goTo('lvlScreen')">☰ Levels</button>
+      <button class="w-btn sec" onclick="document.getElementById('winOvl').classList.remove('show');goTo('lvlScreen')">☰ Levels</button>
       <button class="w-btn pri" id="wnxt" onclick="nextLevel()">Next →</button>
     </div>
   </div>
@@ -246,6 +282,12 @@ canvas{display:block;user-select:none;touch-action:none;cursor:crosshair}
       </div>
       <button class="bbtn" onclick="goTo('menuScreen')">← Back</button>
     </div>
+  </div>
+  <!-- Time limit row -->
+  <div style="width:100%;max-width:520px;display:flex;gap:6px;align-items:center;padding-bottom:5px;flex-shrink:0">
+    <span class="ed-lbl" style="min-width:56px">TIME</span>
+    <input class="ed-time-input" id="edTimeInput" type="number" min="0" max="999" value="0" placeholder="0">
+    <span style="font-size:.65rem;font-family:'IBM Plex Mono',monospace;color:var(--text3)">seconds (0 = no limit)</span>
   </div>
   <!-- Level loader row -->
   <div style="width:100%;max-width:520px;display:flex;gap:6px;align-items:center;padding-bottom:5px;flex-shrink:0">
@@ -282,23 +324,84 @@ canvas{display:block;user-select:none;touch-action:none;cursor:crosshair}
       <button class="ed-abtn" id="edReverseBtn" onclick="edReverseSnake()">⇄ Reverse</button>
       <button class="ed-abtn red-btn" id="edUndoBtn" onclick="edUndoSnakeCell()">↩ Undo</button>
       <button class="ed-abtn red-btn" onclick="edClear()">✕ Clear</button>
-      <button class="ed-abtn pri" onclick="edExport()">⬇ Export</button>
+      <button class="ed-abtn pri" onclick="edExport()">💾 Save Level</button>
     </div>
   </div>
 </div>
 <!-- EXPORT MODAL -->
 <div class="ed-modal-bg" id="edModalBg">
   <div class="ed-modal">
-    <div class="ed-modal-ttl">📋 Level Code — Copy to LEVEL_DEFS</div>
-    <textarea class="ed-modal-ta" id="edModalTa" readonly spellcheck="false"></textarea>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;flex-shrink:0;padding-top:4px">
-      <button class="ed-abtn pri" onclick="edCopyCode()">📋 Copy Code</button>
-      <button class="ed-abtn grn" onclick="edTestLevel()">▶ Test Level</button>
-      <button class="ed-abtn" onclick="document.getElementById('edModalBg').classList.remove('show')">✕ Close</button>
+    <div class="ed-modal-ttl" id="edModalTtl">💾 Save Level</div>
+    <div id="edModalIssues" style="display:none;background:#FEF2F2;border:2px solid #FECACA;border-radius:10px;padding:10px 12px;flex-direction:column;gap:4px"></div>
+    <div id="edModalSuccess" style="display:none;background:#F0FDF4;border:2px solid #86EFAC;border-radius:10px;padding:14px 16px;text-align:center;font-size:.9rem;font-weight:700;color:#15803D"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;flex-shrink:0;padding-top:4px" id="edModalBtns">
+      <button class="ed-abtn pri" id="edSaveBtn" onclick="edSaveToGame()">✅ Add to Game</button>
+      <button class="ed-abtn grn" onclick="edTestLevel()">▶ Test First</button>
+      <button class="ed-abtn" onclick="document.getElementById('edModalBg').classList.remove('show')">✕ Cancel</button>
     </div>
   </div>
 </div>
 <script>
+
+// ── CUSTOM LEVEL PERSISTENCE ──
+const CUSTOM_KEY='gf_custom_levels';
+
+function loadCustomLevels(){
+  try{
+    const saved=JSON.parse(localStorage.getItem(CUSTOM_KEY)||'[]');
+    saved.forEach(lvl=>{
+      if(!LEVEL_DEFS.find(l=>l.id===lvl.id)) LEVEL_DEFS.push(lvl);
+    });
+  }catch(e){}
+}
+
+function saveCustomLevel(lvlObj){
+  try{
+    let saved=JSON.parse(localStorage.getItem(CUSTOM_KEY)||'[]');
+    // Replace if same id, else append
+    const idx=saved.findIndex(l=>l.id===lvlObj.id);
+    if(idx>=0)saved[idx]=lvlObj; else saved.push(lvlObj);
+    localStorage.setItem(CUSTOM_KEY,JSON.stringify(saved));
+  }catch(e){}
+}
+
+function edSaveToGame(){
+  const finished=edSnakes.filter(s=>s.finished&&s.cells.length>=2);
+  if(!finished.length)return;
+  const name=document.getElementById('edTitleInput').value.trim()||'Custom Level';
+  const timeSec=parseInt(document.getElementById('edTimeInput')?.value)||180;
+
+  // Assign new unique id — max existing + 1, skip 999
+  const maxId=LEVEL_DEFS.filter(l=>l.id!==999).reduce((m,l)=>Math.max(m,l.id),0);
+  const newId=maxId+1;
+
+  const lvlObj={
+    id:newId, name, mode:'slide', size:edSize, diff:'medium', timeSec,
+    walls:edWalls.map(([r,c])=>[r,c]),
+    snakes:finished.map((s,i)=>({
+      id:i, color:ED_COLORS.find(c=>c.key===s.colorKey).rgb,
+      colorKey:s.colorKey, cells:s.cells.map(({r,c})=>({r,c}))
+    })),
+    gates:edGates.map(g=>({colorKey:g.colorKey,color:g.color,side:g.side,pos:g.pos}))
+  };
+
+  saveCustomLevel(lvlObj);
+  // Inject live into LEVEL_DEFS
+  const existing=LEVEL_DEFS.findIndex(l=>l.id===newId);
+  if(existing>=0)LEVEL_DEFS[existing]=lvlObj; else LEVEL_DEFS.push(lvlObj);
+
+  // Show success
+  document.getElementById('edModalIssues').style.display='none';
+  const suc=document.getElementById('edModalSuccess');
+  suc.style.display='block';
+  suc.innerHTML=`🎉 "${name}" saved as Level ${newId}!<br><span style="font-size:.75rem;font-weight:600;color:#16A34A;margin-top:4px;display:block">It's now in the level selector ✓</span>`;
+  document.getElementById('edModalBtns').innerHTML=
+    `<button class="ed-abtn pri" onclick="document.getElementById('edModalBg').classList.remove('show');goTo('lvlScreen')">📋 View in Levels</button>
+     <button class="ed-abtn grn" onclick="edTestLevel()">▶ Play Now</button>
+     <button class="ed-abtn" onclick="document.getElementById('edModalBg').classList.remove('show')">✕ Close</button>`;
+}
+
+
 // ════════════════════════════════════════════════════
 //  LEVEL DEFINITIONS
 // ════════════════════════════════════════════════════
@@ -329,7 +432,7 @@ const LEVEL_DEFS = [
   // SLIDE MODE — level 21
   // Bottleneck: Red and Blue share row 2. Green blocks the right exit.
   // Order: move Green down (frees col 5), then Blue up (frees row 2), then Red right to exit.
-  {id:21,name:"Bottleneck",mode:"slide",size:6,diff:"easy",walls:[],
+  {id:21,name:"Bottleneck",mode:"slide", timeSec:180,size:6,diff:"easy",walls:[],
    snakes:[
      // Red: 2 cells, head=(2,1) pointing right — wants RIGHT gate row 2
      {id:0,color:[230,50,80],colorKey:'red',cells:[{r:2,c:1},{r:2,c:0}]},
@@ -347,7 +450,7 @@ const LEVEL_DEFS = [
   // SLIDE LEVEL 22 — "Gridlock" — 7x7, 5 snakes, 4 walls, 16 moves
   // Walls at (1,2),(2,3),(4,3),(5,2) create an inner Z-barrier
   // Solution order: Purple→Red→Blue→Orange→Green
-  {id:22, name:"Gridlock", mode:"slide", size:7, diff:"hard", walls:[[1,2],[2,3],[4,3],[5,2]],
+  {id:22, name:"Gridlock", mode:"slide", timeSec:180, size:7, diff:"hard", walls:[[1,2],[2,3],[4,3],[5,2]],
    snakes:[
      // RED (5): row 0 cols 0-4, head=(0,0) → wants RIGHT gate row 0
      {id:0, color:[220,50,75],   colorKey:'red',
@@ -374,7 +477,7 @@ const LEVEL_DEFS = [
    ]
   },
   // SLIDE LEVEL 23 — "Rush Hour" — 7x7, same walls, 8 snakes, 7 free cells
-  {id:23, name:"Rush Hour", mode:"slide", size:7, diff:"hard", walls:[[1,2],[2,3],[4,3],[5,2]],
+  {id:23, name:"Rush Hour", mode:"slide", timeSec:180, size:7, diff:"hard", walls:[[1,2],[2,3],[4,3],[5,2]],
    snakes:[
      {id:0,color:[220,50,75],   colorKey:'red',
       cells:[{r:0,c:0},{r:0,c:1},{r:0,c:2},{r:0,c:3},{r:0,c:4}]},
@@ -489,13 +592,18 @@ let fPaint=false,fCells=[],fSet=new Set(),fOrder={};
 // ════════════════════════════════════════
 //  SLIDE MODE STATE & CONSTANTS
 // ════════════════════════════════════════
-const SM=32; // slide margin for gate display (px)
+const SM=48; // slide margin for gate display (px)
 let slideSnakes=[],slideCellMap=[];
 let dragSnakeId=-1,dragEnd=null,dragLastCell=null;
 let particles=[];
 let _animFrame=null;
 let slideMoves=0;
 let headOnlyMode=true; // toggle: head+tail vs head only
+let shakeSnakeId=-1, shakeDir={r:0,c:0}, shakeT=0, shakeStart=0;
+// ── TIMER ──
+let slideTimer=null, slideTimeLeft=0, slideTimeFrozen=false, slideFreezeLeft=0;
+// ── SUPERPOWERS ──
+let spReverseActive=false, spAutoRunning=false;
 
 // ── START LEVEL ──
 function startLevel(id){
@@ -511,8 +619,9 @@ function startLevel(id){
 
   if(lvlDef.mode==='slide'){
     // ── SLIDE SETUP ──
-    const avail=Math.min(window.innerWidth-28,window.innerHeight-240,500);
-    CS=Math.max(36,Math.min(62,Math.floor(avail/gridSize)));
+    const pad=Math.max(32,parseInt(getComputedStyle(document.getElementById('gameScreen')).paddingLeft)||16);
+    const avail=Math.min(window.innerWidth-pad*2-8,window.innerHeight-240,480);
+    CS=Math.max(34,Math.min(60,Math.floor(avail/gridSize)));
     gc.width=gc.height=gridSize*CS+2*SM;
 
     wallSet=new Set((lvlDef.walls||[]).map(([r,c])=>r*1000+c));
@@ -521,12 +630,13 @@ function startLevel(id){
     const mb=document.getElementById('modeBadge');
     mb.textContent='SLIDE';mb.className='mode-badge slide';
     document.getElementById('hudCounter').classList.remove('visible');
-    document.getElementById('slideHud').classList.add('visible');
-    document.getElementById('slideMovesNum').textContent='0';
+    document.getElementById('timerHud').classList.add('visible');
     document.getElementById('undoBtn').style.display='none';
     document.getElementById('fillCtrls').style.display='none';
-    document.getElementById('slideCtrls').style.display='flex';
-    setStatus('Grab a snake head 🟢 or tail to slide it · Match colors to gates!');
+    setStatus('');
+    startTimer(lvlDef.timeSec||0);
+    updateTimerHUD();
+    initSuperpowers();
 
     if(curScreen!=='gameScreen')goTo('gameScreen');
     drawSlide();
@@ -546,10 +656,9 @@ function startLevel(id){
     mb.textContent=lvlDef.mode==='box'?'BOX':'FREE';
     mb.className='mode-badge '+lvlDef.mode;
     document.getElementById('hudCounter').classList.remove('visible','match');
-    document.getElementById('slideHud').classList.remove('visible');
+    document.getElementById('timerHud').classList.remove('visible');
     document.getElementById('undoBtn').style.display='flex';
     document.getElementById('fillCtrls').style.display='flex';
-    document.getElementById('slideCtrls').style.display='none';
     setStatus(wallSet.size>0?'⬛ Black cells are walls — route around them!':'Tap a region to remove it · Drag to draw');
 
     if(curScreen!=='gameScreen')goTo('gameScreen');
@@ -615,7 +724,13 @@ function isAdjacentToGate(snake,gate){
   return check(snake.cells[0])||check(snake.cells[snake.cells.length-1]);
 }
 
+const TWEEN_MS=90; // duration per cell move in ms
+function easeOut(t){return 1-(1-t)*(1-t)*(1-t)} // cubic ease-out
+
 function moveSnakeEnd(snake,end,tr,tc){
+  // Save current positions as tween start (deep copy)
+  const snap=snake.cells.map(c=>({...c}));
+
   if(end==='head'){
     const oldTail=snake.cells[snake.cells.length-1];
     slideCellMap[oldTail.r][oldTail.c]=-1;
@@ -629,7 +744,19 @@ function moveSnakeEnd(snake,end,tr,tc){
   }
   slideCellMap[tr][tc]=snake.id;
   slideMoves++;
-  document.getElementById('slideMovesNum').textContent=slideMoves;
+
+  // Start or chain tween
+  if(snake.tweening){
+    // Already tweening: queue this move's prev snapshot so it chains
+    snake.tweenQueue=snake.tweenQueue||[];
+    snake.tweenQueue.push({prevCells:snap, targetCells:snake.cells.map(c=>({...c}))});
+  } else {
+    snake.prevCells=snap;
+    snake.tweenT=0;
+    snake.tweenStart=performance.now();
+    snake.tweening=true;
+    startLoop();
+  }
 }
 
 function destroySnake(snake,gate){
@@ -654,15 +781,36 @@ function spawnParticles(px,py,color){
   startLoop();
 }
 function startLoop(){if(!_animFrame)_animFrame=requestAnimationFrame(gameLoop)}
-function gameLoop(){
+function gameLoop(now){
+  let needLoop=false;
+
+  // Advance move tweens
+  slideSnakes.filter(s=>s.tweening&&!s.exiting&&!s.dead).forEach(s=>{
+    const elapsed=now-s.tweenStart;
+    s.tweenT=Math.min(1, elapsed/TWEEN_MS);
+    if(s.tweenT>=1){
+      s.tweening=false;
+      s.prevCells=null;
+      // Dequeue next chained move if any
+      if(s.tweenQueue&&s.tweenQueue.length){
+        const next=s.tweenQueue.shift();
+        s.prevCells=next.prevCells;
+        s.tweenT=0;
+        s.tweenStart=now;
+        s.tweening=true;
+        // Update cells to next target
+        s.cells=next.targetCells;
+        needLoop=true;
+      }
+    } else { needLoop=true; }
+  });
+
   // Advance exiting snakes
-  let anyExiting=false;
   slideSnakes.filter(s=>s.exiting&&!s.dead).forEach(s=>{
-    anyExiting=true;
-    const speed=CS*0.12; // pixels per frame — ~8 frames per cell
+    needLoop=true;
+    const speed=CS*0.12;
     s.exitOffset+=speed;
     if(s.exitOffset>=CS){
-      // Pop tail off grid
       const tail=s.cells[s.cells.length-1];
       slideCellMap[tail.r][tail.c]=-1;
       s.cells.pop();
@@ -670,7 +818,6 @@ function gameLoop(){
       if(s.cells.length===0){
         s.dead=true; s.exiting=false;
         slideMoves++;
-        document.getElementById('slideMovesNum').textContent=slideMoves;
         const gp=gatePixel(s.exitGate);
         spawnParticles(gp.x,gp.y,s.color);
         if(getAlive().length===0){setTimeout(triggerSlideWin,700)}
@@ -681,7 +828,8 @@ function gameLoop(){
   particles.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=0.12;p.vx*=0.97;p.vy*=0.97;p.life-=p.decay});
   particles=particles.filter(p=>p.life>0);
   if(lvlDef&&lvlDef.mode==='slide')drawSlide();
-  if(particles.length>0||anyExiting)_animFrame=requestAnimationFrame(gameLoop);
+  if(shakeSnakeId>=0)needLoop=true;
+  if(needLoop||particles.length>0)_animFrame=requestAnimationFrame(gameLoop);
   else _animFrame=null;
 }
 
@@ -770,26 +918,99 @@ function drawSlide(){
   ctx.globalAlpha=1;
 }
 
+
+
+
+// ── FACE DIRECTION SYSTEM ──
+function _natAngle(snake){
+  const c=snake.cells;
+  if(c.length<2)return 0;
+  const dr=c[0].r-c[1].r, dc=c[0].c-c[1].c;
+  return Math.atan2(dr,dc);
+}
+function _lerpAng(a,b,t){
+  let d=((b-a+Math.PI*3)%(Math.PI*2))-Math.PI;
+  return a+d*t;
+}
+// Set face toward (dr,dc). blocked=true: snap there, then schedule return to natural
+function snakeFaceTo(snake,dr,dc,blocked){
+  snake.faceAngle=Math.atan2(dr,dc);
+  if(blocked){
+    // Return to natural after shake finishes
+    snake.faceReturnAt=performance.now()+SHAKE_MS;
+    snake.faceReturnTarget=_natAngle(snake);
+  }
+}
+function snakeGetFaceAngle(snake,now){
+  if(snake.exiting) return Math.atan2(snake.exitDr,snake.exitDc);
+  if(snake.faceAngle===undefined) return _natAngle(snake);
+  if(snake.faceReturnAt&&now>=snake.faceReturnAt){
+    const t=Math.min(1,(now-snake.faceReturnAt)/250);
+    snake.faceAngle=_lerpAng(snake.faceAngle,snake.faceReturnTarget,t*0.2);
+    if(t>=1){snake.faceAngle=snake.faceReturnTarget;snake.faceReturnAt=null;}
+    startLoop();
+  }
+  return snake.faceAngle;
+}
+
+// ── SHAKE ANIMATION ──
+const SHAKE_MS=320;
+function triggerShake(snake,dr,dc){
+  shakeSnakeId=snake.id;
+  shakeDir={r:dr,c:dc};
+  shakeT=0;
+  shakeStart=performance.now();
+  startLoop();
+}
+
+function getShakeOffset(cellIndex, now){
+  if(shakeSnakeId<0)return{ox:0,oy:0};
+  const elapsed=now-shakeStart;
+  if(elapsed>=SHAKE_MS){shakeSnakeId=-1;return{ox:0,oy:0};}
+  const t=elapsed/SHAKE_MS;
+  // Cascading: each cell delayed by 40ms per index
+  const delay=cellIndex*0.08;
+  const ct=Math.max(0,Math.min(1,(t-delay)/0.6));
+  if(ct<=0)return{ox:0,oy:0};
+  // Damped sine: punch out then bounce back
+  const amp=CS*0.18*Math.pow(1-ct,1.5);
+  const wave=Math.sin(ct*Math.PI*3.5)*amp;
+  return{ox:shakeDir.c*wave, oy:shakeDir.r*wave};
+}
+
 function drawSnake(snake){
   const{cells,color,id}=snake;
   if(!cells.length)return;
   const[R,G,B]=color;
   const isDragging=dragSnakeId===id;
 
-  // Compute per-cell pixel positions
-  // During exit: head leads in exit direction, each cell follows the one ahead
-  const t=snake.exiting?(snake.exitOffset/CS):0;
+  // Compute per-cell pixel positions with tween interpolation
+  const nowTs=performance.now();
+  const isShaking=shakeSnakeId===id;
   const cellPx=cells.map(({r,c},i)=>{
-    if(!snake.exiting) return{x:SM+c*CS+CS/2, y:SM+r*CS+CS/2};
-    if(i===0){
-      // Head moves toward the gate by exitOffset pixels
-      return{x:SM+c*CS+CS/2+snake.exitDc*snake.exitOffset,
-             y:SM+r*CS+CS/2+snake.exitDr*snake.exitOffset};
+    const tx=SM+c*CS+CS/2, ty=SM+r*CS+CS/2;
+
+    if(snake.exiting){
+      // Exit animation: head leads, each cell follows previous
+      const ef=snake.exitOffset/CS;
+      if(i===0) return{x:tx+snake.exitDc*snake.exitOffset, y:ty+snake.exitDr*snake.exitOffset};
+      const prev=cells[i-1];
+      return{x:SM+prev.c*CS+CS/2+(c-prev.c)*CS*(1-ef), y:SM+prev.r*CS+CS/2+(r-prev.r)*CS*(1-ef)};
     }
-    // Each body cell slides toward the cell ahead of it by t
-    const prev=cells[i-1];
-    return{x:SM+c*CS+CS/2+(prev.c-c)*CS*t,
-           y:SM+r*CS+CS/2+(prev.r-r)*CS*t};
+
+    if(snake.tweening&&snake.prevCells&&snake.prevCells[i]){
+      // Move tween: interpolate from prevCells to current cells
+      const p=snake.prevCells[i];
+      const ef=easeOut(snake.tweenT);
+      return{x:SM+p.c*CS+CS/2+(c-p.c)*CS*ef,
+             y:SM+p.r*CS+CS/2+(r-p.r)*CS*ef};
+    }
+
+    if(isShaking){
+      const{ox,oy}=getShakeOffset(i,nowTs);
+      return{x:tx+ox, y:ty+oy};
+    }
+    return{x:tx, y:ty};
   });
 
   // Body tube
@@ -812,20 +1033,21 @@ function drawSnake(snake){
 
     if(isHead){
       ctx.strokeStyle='rgba(255,255,255,.8)';ctx.lineWidth=2.5;ctx.stroke();
-      let fdr=0,fdc=1;
-      if(cells.length>1){fdr=cells[0].r-cells[1].r;fdc=cells[0].c-cells[1].c}
-      // During exit use exit direction for eyes
-      if(snake.exiting){fdr=snake.exitDr;fdc=snake.exitDc}
+
+      // Face angle: single source of truth = snake.faceAngle
+      const fa = snakeGetFaceAngle(snake, nowTs);
+
+      const perpX=-Math.sin(fa), perpY=Math.cos(fa);
       const ep=CS*.11;
-      const perp={r:-fdc,c:fdr};
-      const e1x=px+perp.c*ep,e1y=py+perp.r*ep;
-      const e2x=px-perp.c*ep,e2y=py-perp.r*ep;
+      const e1x=px+perpX*ep, e1y=py+perpY*ep;
+      const e2x=px-perpX*ep, e2y=py-perpY*ep;
       ctx.fillStyle='rgba(255,255,255,.92)';
       ctx.beginPath();ctx.arc(e1x,e1y,CS*.065,0,Math.PI*2);ctx.fill();
       ctx.beginPath();ctx.arc(e2x,e2y,CS*.065,0,Math.PI*2);ctx.fill();
+      const pupilOx=Math.cos(fa)*CS*.02, pupilOy=Math.sin(fa)*CS*.02;
       ctx.fillStyle='rgba(0,0,0,.7)';
-      ctx.beginPath();ctx.arc(e1x+fdc*CS*.02,e1y+fdr*CS*.02,CS*.032,0,Math.PI*2);ctx.fill();
-      ctx.beginPath();ctx.arc(e2x+fdc*CS*.02,e2y+fdr*CS*.02,CS*.032,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.arc(e1x+pupilOx,e1y+pupilOy,CS*.032,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.arc(e2x+pupilOx,e2y+pupilOy,CS*.032,0,Math.PI*2);ctx.fill();
     }
     if(isTail&&cells.length>1){
       ctx.strokeStyle='rgba(255,255,255,.35)';ctx.lineWidth=1.5;ctx.stroke();
@@ -857,6 +1079,8 @@ function toggleDragMode(){
 
 // ── SLIDE WIN ──
 function triggerSlideWin(){
+  stopTimer();
+  spAutoRunning=false;
   const elapsed=Math.round((Date.now()-t0)/1000);
   sp(curLvlId,3);
   ['ws1','ws2','ws3'].forEach((sid,i)=>{
@@ -866,10 +1090,311 @@ function triggerSlideWin(){
   document.getElementById('wem').textContent='🎉';
   document.getElementById('wttl').textContent='All Snakes Escaped!';
   document.getElementById('wsub').textContent=lvlDef.name+' · Slide Mode';
-  document.getElementById('wmov').textContent=slideMoves+' moves';
   document.getElementById('wtim').textContent=elapsed+'s';
-  document.getElementById('wnxt').style.display='none';
+  const hasNext=curLvlId<TOTAL||curLvlId===999;
+  document.getElementById('wnxt').style.display=hasNext?'':'none';
   document.getElementById('winOvl').classList.add('show');
+}
+
+
+// ═══════════════════════════════════════════
+//  TIMER
+// ═══════════════════════════════════════════
+function startTimer(sec){
+  clearInterval(slideTimer);
+  slideTimeLeft=sec;
+  slideTimeFrozen=false;
+  slideFreezeLeft=0;
+  updateTimerHUD();
+  if(sec>0){
+    slideTimer=setInterval(tickTimer,1000);
+  }
+}
+function stopTimer(){clearInterval(slideTimer);slideTimer=null;}
+function tickTimer(){
+  if(slideTimeFrozen){
+    slideFreezeLeft--;
+    if(slideFreezeLeft<=0){
+      slideTimeFrozen=false;
+      slideFreezeLeft=0;
+      document.getElementById('spFreeze').classList.remove('frozen-active');
+    }
+    document.getElementById('spFreezeTimer').textContent=slideFreezeLeft>0?slideFreezeLeft+'s':'';
+    updateTimerHUD();
+    return;
+  }
+  if(slideTimeLeft<=0)return;
+  slideTimeLeft--;
+  updateTimerHUD();
+  if(slideTimeLeft<=0){
+    stopTimer();
+    // Time up: trigger lose state
+    setStatus("⏰ Time's up!",'err');
+    setTimeout(()=>{
+      document.getElementById('wem').textContent='⏰';
+      document.getElementById('wttl').textContent="Time's Up!";
+      document.getElementById('wsub').textContent=lvlDef.name+' — Try again';
+      document.getElementById('wtim').textContent='0s';
+      document.getElementById('wnxt').style.display='none';
+      document.getElementById('winOvl').classList.add('show');
+      ['ws1','ws2','ws3'].forEach(id=>document.getElementById(id).classList.remove('lit'));
+    },600);
+  }
+}
+function updateTimerHUD(){
+  const el=document.getElementById('timerHud');
+  const numEl=document.getElementById('timerNum');
+  if(!el||!lvlDef||lvlDef.mode!=='slide'){el&&el.classList.remove('visible');return;}
+  el.classList.add('visible');
+  if((lvlDef&&lvlDef.timeSec||0)<=0){
+    numEl.textContent='∞';
+      el.classList.remove('urgent','frozen');
+    return;
+  }
+  const t=slideTimeLeft;
+  const m=Math.floor(t/60), s=t%60;
+  numEl.textContent=m+':'+(s<10?'0':'')+s;
+  el.classList.toggle('urgent',!slideTimeFrozen&&t<=10&&t>0);
+  el.classList.toggle('frozen',slideTimeFrozen);
+}
+
+// ═══════════════════════════════════════════
+//  SUPERPOWERS
+// ═══════════════════════════════════════════
+function initSuperpowers(){
+  spReverseActive=false;
+  spAutoRunning=false;
+  document.getElementById('spReverse').classList.remove('active','disabled');
+  document.getElementById('spAuto').classList.remove('active','disabled');
+  document.getElementById('spFreeze').classList.remove('frozen-active','disabled');
+  document.getElementById('spFreezeTimer').textContent='';
+  document.getElementById('spRow').classList.add('visible');
+}
+
+// ── SUPERPOWER 1: REVERSE ──
+function spUseReverse(){
+  if(spAutoRunning)return;
+  spReverseActive=!spReverseActive;
+  document.getElementById('spReverse').classList.toggle('active',spReverseActive);
+  setStatus(spReverseActive?'🔄 Tap a snake to flip its head ↔ tail':'Reverse cancelled');
+}
+function spDoReverse(snake){
+  if(!spReverseActive)return false;
+  snake.cells.reverse();
+  spReverseActive=false;
+  document.getElementById('spReverse').classList.remove('active');
+  setStatus('🔄 Snake reversed!','ok');
+  drawSlide();
+  return true;
+}
+
+// ── SUPERPOWER 2: AUTO-CLEAR ──
+
+// Encode full snake state as a compact string for BFS visited deduplication
+function encodeState(snakes){
+  return snakes.map(s=>s.dead?'X':s.cells.map(({r,c})=>r*100+c).join(',')).join('|');
+}
+
+// Multi-snake BFS: can move ANY alive snake each step.
+// Goal: get snake[targetIdx] head to its gate cell.
+// Returns [{snakeIdx,r,c}] plan or null.
+function multiSnakeBFS(initSnakes, targetIdx, sz, maxStates){
+  const gate=lvlDef.gates.find(g=>g.colorKey===initSnakes[targetIdx].colorKey);
+  if(!gate)return null;
+  const gr=gate.side==='top'?0:gate.side==='bottom'?sz-1:gate.pos;
+  const gc2=gate.side==='left'?0:gate.side==='right'?sz-1:gate.pos;
+
+  const start=initSnakes.map(s=>({cells:s.cells.map(c=>({...c})),dead:s.dead||false}));
+  const sh=start[targetIdx].cells[0];
+  if(sh.r===gr&&sh.c===gc2)return[];
+
+  const queue=[{snakes:start,plan:[]}];
+  const visited=new Set([encodeState(start)]);
+  let explored=0;
+
+  while(queue.length&&explored<maxStates){
+    const{snakes,plan}=queue.shift();
+    explored++;
+
+    for(let si=0;si<snakes.length;si++){
+      if(snakes[si].dead)continue;
+      const s=snakes[si];
+      const head=s.cells[0];
+      const tail=s.cells[s.cells.length-1];
+
+      for(const[dr,dc]of[[-1,0],[1,0],[0,-1],[0,1]]){
+        const nr=head.r+dr, nc=head.c+dc;
+        if(nr<0||nr>=sz||nc<0||nc>=sz)continue;
+        if(wallSet.has(nr*1000+nc))continue;
+
+        // Check blocked: own body (not tail), other snakes
+        let blocked=false;
+        for(let ci=0;ci<s.cells.length-1;ci++){
+          if(s.cells[ci].r===nr&&s.cells[ci].c===nc){blocked=true;break;}
+        }
+        if(!blocked){
+          for(let oi=0;oi<snakes.length&&!blocked;oi++){
+            if(oi===si||snakes[oi].dead)continue;
+            if(snakes[oi].cells.some(c=>c.r===nr&&c.c===nc))blocked=true;
+          }
+        }
+        if(blocked)continue;
+
+        // Build new snakes (cheap copy — only change si)
+        const newSnakes=snakes.map((os,oi)=>oi!==si?os:
+          {cells:[{r:nr,c:nc},...os.cells.slice(0,-1)],dead:false});
+
+        const newPlan=[...plan,{snakeIdx:si,r:nr,c:nc}];
+
+        if(si===targetIdx&&nr===gr&&nc===gc2)return newPlan;
+
+        const key=encodeState(newSnakes);
+        if(!visited.has(key)){
+          visited.add(key);
+          queue.push({snakes:newSnakes,plan:newPlan});
+        }
+      }
+    }
+  }
+  return null;
+}
+
+// Greedy planner with multiple orderings
+function planAutoClear(){
+  const alive=getActive();
+  if(!alive.length)return null;
+  const sz=gridSize;
+
+  // Score by distance to gate for ordering heuristics
+  const scored=alive.map((s,i)=>{
+    const gate=lvlDef.gates.find(g=>g.colorKey===s.colorKey);
+    if(!gate)return{i,d:999};
+    const gr=gate.side==='top'?0:gate.side==='bottom'?sz-1:gate.pos;
+    const gc2=gate.side==='left'?0:gate.side==='right'?sz-1:gate.pos;
+    const h=s.cells[0];
+    return{i,d:Math.abs(h.r-gr)+Math.abs(h.c-gc2)};
+  }).sort((a,b)=>a.d-b.d);
+
+  const base=scored.map(s=>s.i);
+  // Try: closest-first, farthest-first, and all rotations
+  const orders=[
+    base,
+    [...base].reverse(),
+    ...base.map((_,k)=>k>0?[...base.slice(k),...base.slice(0,k)]:[]).filter(o=>o.length),
+  ];
+
+  for(const order of orders){
+    const result=tryOrderMS(alive,order,sz);
+    if(result)return result;
+  }
+  return null;
+}
+
+// Try clearing snakes in given order, using full multi-snake BFS per step.
+function tryOrderMS(alive,order,sz){
+  let ws=alive.map(s=>({cells:s.cells.map(c=>({...c})),dead:false}));
+  const fullPlan=[];
+
+  for(const ti of order){
+    if(ws[ti].dead)continue;
+
+    const moves=multiSnakeBFS(ws,ti,sz,25000);
+    if(!moves)return null;
+
+    moves.forEach(({snakeIdx,r,c})=>{
+      fullPlan.push({snakeIdx,r,c});
+      ws[snakeIdx].cells=[{r,c},...ws[snakeIdx].cells.slice(0,-1)];
+    });
+    ws[ti].dead=true;
+  }
+
+  return{plan:fullPlan,snakes:alive};
+}
+
+function spUseAuto(){
+  if(spAutoRunning||spReverseActive)return;
+  const alive=getActive();
+  if(!alive.length)return;
+
+  spAutoRunning=true;
+  document.getElementById('spAuto').classList.add('disabled');
+  document.getElementById('spReverse').classList.add('disabled');
+  setStatus('🤖 Planning...');
+
+  // Run planner async so UI doesn't freeze
+  setTimeout(()=>{
+    const result=planAutoClear();
+    if(!result){
+      spAutoRunning=false;
+      document.getElementById('spAuto').classList.remove('disabled');
+      document.getElementById('spReverse').classList.remove('disabled');
+      setStatus('🤖 Truly stuck — no solution found!','hint');
+      return;
+    }
+
+    const{plan,snakes}=result;
+    setStatus('🤖 Solving...');
+
+    // Track which snakes still need gate exit (those that finish their path moves)
+    const exited=new Set();
+
+    function doStep(i){
+      if(i>=plan.length){
+        // Trigger gate exit for all snakes that finished their moves but haven't exited
+        snakes.forEach((s,si)=>{
+          if(!s.dead&&!s.exiting&&!exited.has(si)){
+            const gate=lvlDef.gates.find(g=>g.colorKey===s.colorKey);
+            if(gate){exited.add(si);destroySnake(s,gate);}
+          }
+        });
+        spAutoRunning=false;
+        document.getElementById('spAuto').classList.remove('disabled');
+        document.getElementById('spReverse').classList.remove('disabled');
+        return;
+      }
+      const step=plan[i];
+      const snake=snakes[step.snakeIdx];
+      if(!snake||snake.dead||snake.exiting){doStep(i+1);return;}
+      if(step.reverse){snake.cells.reverse();drawSlide();setTimeout(()=>doStep(i+1),80);return;}
+
+      // Check if this snake has reached its gate cell on this move
+      const gate=lvlDef.gates.find(g=>g.colorKey===snake.colorKey);
+      const gr=gate?gate.side==='top'?0:gate.side==='bottom'?gridSize-1:gate.pos:null;
+      const gc2=gate?gate.side==='left'?0:gate.side==='right'?gridSize-1:gate.pos:null;
+
+      moveSnakeEnd(snake,'head',step.r,step.c);
+      startLoop();
+
+      // If next step is a different snake or end of plan, check if this snake should exit
+      const nextStep=plan[i+1];
+      const isLastForThisSnake=!nextStep||nextStep.snakeIdx!==step.snakeIdx;
+      if(isLastForThisSnake&&gate&&step.r===gr&&step.c===gc2&&!exited.has(step.snakeIdx)){
+        setTimeout(()=>{
+          exited.add(step.snakeIdx);
+          destroySnake(snake,gate);
+          setTimeout(()=>doStep(i+1),TWEEN_MS+60);
+        },TWEEN_MS+40);
+      } else {
+        setTimeout(()=>doStep(i+1), TWEEN_MS+40);
+      }
+    }
+    doStep(0);
+  },20);
+}
+
+// ── SUPERPOWER 3: TIME FREEZE ──
+function spUseFreeze(){
+  if(slideTimeFrozen||(lvlDef.timeSec||0)<=0){
+    // No timer = freeze does nothing meaningful; show message
+    if((lvlDef.timeSec||0)<=0){setStatus('❄️ No timer on this level!','hint');return;}
+    return;
+  }
+  slideTimeFrozen=true;
+  slideFreezeLeft=15;
+  document.getElementById('spFreeze').classList.add('frozen-active');
+  document.getElementById('spFreezeTimer').textContent='15s';
+  setStatus('❄️ Time frozen for 15 seconds!','ok');
+  updateTimerHUD();
 }
 
 // ── SLIDE EVENTS ──
@@ -880,8 +1405,10 @@ function onDnSlide(x,y){
   const sid=slideCellMap[r][c];
   if(sid<0){setStatus('Tap a snake\'s 🟢 head or tail to move it');return}
   const snake=getAlive().find(s=>s.id===sid);if(!snake)return;
+  // Reverse superpower intercept
+  if(spDoReverse(snake))return;
   const head=snake.cells[0],tail=snake.cells[snake.cells.length-1];
-  if(r===head.r&&c===head.c){dragSnakeId=sid;dragEnd='head'}
+  if(r===head.r&&c===head.c){dragSnakeId=sid;dragEnd='head';snake.faceAngle=_natAngle(snake);}
   else if(!headOnlyMode&&r===tail.r&&c===tail.c){dragSnakeId=sid;dragEnd='tail'}
   else{
     const msg=headOnlyMode?'Head-only mode — grab the bright circle 🟢!':'Grab the head 🟢 (bright circle) or tail end!';
@@ -903,8 +1430,14 @@ function onMvSlide(x,y){
     if(dragLastCell&&row===dragLastCell.r&&col===dragLastCell.c)return;
     const dr=row-endCell.r,dc=col-endCell.c;
     if(Math.abs(dr)+Math.abs(dc)!==1)return; // not adjacent
-    if(slideCellMap[row][col]>=0)return; // occupied
-    if(wallSet.has(ck(row,col)))return; // wall
+    if(slideCellMap[row][col]>=0||wallSet.has(ck(row,col))){
+      // Blocked — face toward blocked dir, shake, then animate back
+      snakeFaceTo(snake, dr, dc, true);
+      triggerShake(snake, dr, dc);
+      return;
+    }
+    // Freely moved — snap face to this direction
+    snakeFaceTo(snake, dr, dc, false);
     moveSnakeEnd(snake,dragEnd,row,col);
     dragLastCell={r:row,c:col};
     drawSlide();
@@ -985,14 +1518,13 @@ function checkWin(){
     document.getElementById('wem').textContent=stars===3?'🏆':stars===2?'🎉':'✅';
     document.getElementById('wttl').textContent=stars===3?'Perfect!':'Level Complete!';
     document.getElementById('wsub').textContent=lvlDef.name+' · '+(lvlDef.mode==='box'?'Box':'Free Path');
-    document.getElementById('wmov').textContent=moves;
     document.getElementById('wtim').textContent=elapsed+'s';
     document.getElementById('wnxt').style.display=curLvlId<TOTAL?'inline-flex':'none';
     document.getElementById('winOvl').classList.add('show');
   },350);
 }
 
-function retryLevel(){document.getElementById('winOvl').classList.remove('show');startLevel(curLvlId)}
+function retryLevel(){document.getElementById('winOvl').classList.remove('show');stopTimer();startLevel(curLvlId)}
 function nextLevel(){
   document.getElementById('winOvl').classList.remove('show');
   if(curLvlId===999){goTo('editorScreen');return} // return to editor after test
@@ -1170,6 +1702,7 @@ gc.addEventListener('touchmove',e=>{e.preventDefault();const p=tp(e.touches[0]);
 gc.addEventListener('touchend',e=>{e.preventDefault();onUp()},{passive:false});
 window.addEventListener('mouseup',()=>{if(bDrag||fPaint||dragSnakeId>=0)onUp()});
 
+loadCustomLevels();
 renderLevels();
 
 // ════════════════════════════════════════════════════
@@ -1304,8 +1837,9 @@ function edSetGateByKey(key){
   if(idx<0)return;
   edGateColorIdx=idx;
   const col=ED_COLORS[idx];
-  edSetStatus(`${col.key} gate — click border margin to place`);
+  edSetStatus(`${col.key} gate — click a border slot to place`);
   edRenderOptions();
+  edDraw(); // repaint slots with new color
 }
 
 function edSetGateColor(idx){edSetGateByKey(ED_COLORS[idx]?.key)}
@@ -1703,34 +2237,46 @@ function edDraw(){
     const tabW=edCS*.55, tabH=EDM*.7;
     for(let i=0;i<edSize;i++){
       const sides=[
-        {side:'top',    cx:EDM+i*edCS+edCS/2, cy:EDM,             dx:0, dy:-1},
-        {side:'bottom', cx:EDM+i*edCS+edCS/2, cy:EDM+gw,          dx:0, dy:1},
-        {side:'left',   cx:EDM,               cy:EDM+i*edCS+edCS/2,dx:-1,dy:0},
-        {side:'right',  cx:EDM+gw,            cy:EDM+i*edCS+edCS/2,dx:1, dy:0},
+        {side:'top',    cx:EDM+i*edCS+edCS/2, cy:EDM,    dx:0,  dy:-1},
+        {side:'bottom', cx:EDM+i*edCS+edCS/2, cy:EDM+gw, dx:0,  dy:1},
+        {side:'left',   cx:EDM,  cy:EDM+i*edCS+edCS/2,   dx:-1, dy:0},
+        {side:'right',  cx:EDM+gw,cy:EDM+i*edCS+edCS/2,  dx:1,  dy:0},
       ];
       sides.forEach(({side,cx,cy,dx,dy})=>{
         const placedGate=edGates.find(g=>g.side===side&&g.pos===i);
-        const col=placedGate?ED_COLORS.find(c=>c.key===placedGate.colorKey):null;
-        const [R,G,B]=col?col.rgb:[sR,sG,sB];
-        const isPlaced=!!placedGate;
-        const isSelected=!placedGate&&true; // always show available slots for current color
-
         const tw=dy===0?tabH:tabW, th=dy===0?tabW:tabH;
         const tx=cx+dx*edCS*.25-tw/2, ty=cy+dy*edCS*.25-th/2;
 
-        // Draw slot tab
-        edCtx.fillStyle=isPlaced?`rgba(${R},${G},${B},.95)`:`rgba(${sR},${sG},${sB},.5)`;
-        edRRect(edCtx,tx,ty,tw,th,4);edCtx.fill();
-        edCtx.strokeStyle=isPlaced?`rgba(${R},${G},${B},1)`:`rgba(${sR},${sG},${sB},.85)`;
-        edCtx.lineWidth=isPlaced?2:1.5;
-        edRRect(edCtx,tx,ty,tw,th,4);edCtx.stroke();
-
-        // Label: first letter of color
-        const label=isPlaced?col.key[0].toUpperCase():'↓'.replace('↓',dy<0?'↑':dy>0?'↓':dx<0?'←':'→');
-        edCtx.fillStyle='rgba(255,255,255,.95)';
-        edCtx.font=`700 ${Math.round(Math.min(tw,th)*.6)}px sans-serif`;
-        edCtx.textAlign='center';edCtx.textBaseline='middle';
-        edCtx.fillText(label,tx+tw/2,ty+th/2);
+        if(placedGate){
+          // Placed gate: solid, uses its own color
+          const col=ED_COLORS.find(c=>c.key===placedGate.colorKey);
+          const[R,G,B]=col?col.rgb:[sR,sG,sB];
+          edCtx.fillStyle=`rgba(${R},${G},${B},.92)`;
+          edRRect(edCtx,tx,ty,tw,th,4);edCtx.fill();
+          edCtx.strokeStyle=`rgba(${R},${G},${B},1)`;
+          edCtx.lineWidth=2;
+          edRRect(edCtx,tx,ty,tw,th,4);edCtx.stroke();
+          // Color initial letter
+          edCtx.fillStyle='rgba(255,255,255,.95)';
+          edCtx.font=`700 ${Math.round(Math.min(tw,th)*.58)}px sans-serif`;
+          edCtx.textAlign='center';edCtx.textBaseline='middle';
+          edCtx.fillText(col.key[0].toUpperCase(),tx+tw/2,ty+th/2);
+        } else {
+          // Empty slot: very transparent, colored by currently selected gate color
+          edCtx.fillStyle=`rgba(${sR},${sG},${sB},.15)`;
+          edRRect(edCtx,tx,ty,tw,th,4);edCtx.fill();
+          edCtx.strokeStyle=`rgba(${sR},${sG},${sB},.4)`;
+          edCtx.lineWidth=1;
+          edCtx.setLineDash([3,2]);
+          edRRect(edCtx,tx,ty,tw,th,4);edCtx.stroke();
+          edCtx.setLineDash([]);
+          // Tiny arrow
+          const arr=dy<0?'↑':dy>0?'↓':dx<0?'←':'→';
+          edCtx.fillStyle=`rgba(${sR},${sG},${sB},.55)`;
+          edCtx.font=`600 ${Math.round(Math.min(tw,th)*.52)}px sans-serif`;
+          edCtx.textAlign='center';edCtx.textBaseline='middle';
+          edCtx.fillText(arr,tx+tw/2,ty+th/2);
+        }
       });
     }
   }
@@ -1743,6 +2289,73 @@ function edRRect(c,x,y,w,h,r){
   c.lineTo(x,y+r);c.arcTo(x,y,x+r,y,r);c.closePath();
 }
 
+// ── LEVEL VALIDATION ──
+function edValidate(finished){
+  const issues=[];
+  const wallSet=new Set(edWalls.map(([r,c])=>r*1000+c));
+  const snakeCells=new Set();
+  edSnakes.forEach(s=>s.cells.forEach(({r,c})=>snakeCells.add(r*1000+c)));
+
+  finished.forEach(s=>{
+    const gate=edGates.find(g=>g.colorKey===s.colorKey);
+
+    // 1. No gate at all
+    if(!gate){
+      issues.push({key:s.colorKey, msg:`No gate placed for ${s.colorKey} snake`});
+      return;
+    }
+
+    // 2. Gate cell blocked by a wall
+    const gr=gate.side==='top'?0:gate.side==='bottom'?edSize-1:gate.pos;
+    const gc=gate.side==='left'?0:gate.side==='right'?edSize-1:gate.pos;
+    if(wallSet.has(gr*1000+gc)){
+      issues.push({key:s.colorKey, msg:`${s.colorKey} gate is directly blocked by a wall`});
+      return;
+    }
+
+    // 3. BFS: can any snake cell reach the gate cell?
+    //    Passable = not a wall, not occupied by a DIFFERENT snake
+    const otherSnakeCells=new Set();
+    edSnakes.forEach(o=>{
+      if(o.colorKey===s.colorKey)return;
+      o.cells.forEach(({r,c})=>otherSnakeCells.add(r*1000+c));
+    });
+
+    const passable=(r,c)=>
+      r>=0&&r<edSize&&c>=0&&c<edSize&&
+      !wallSet.has(r*1000+c)&&
+      !otherSnakeCells.has(r*1000+c);
+
+    const visited=new Set();
+    const queue=[...s.cells.map(({r,c})=>({r,c}))];
+    queue.forEach(({r,c})=>visited.add(r*1000+c));
+    let found=false;
+
+    while(queue.length&&!found){
+      const{r,c}=queue.shift();
+      if(r===gr&&c===gc){found=true;break}
+      for(const[dr,dc]of[[-1,0],[1,0],[0,-1],[0,1]]){
+        const nr=r+dr,nc=c+dc,k=nr*1000+nc;
+        if(!visited.has(k)&&passable(nr,nc)){
+          visited.add(k);queue.push({r:nr,c:nc});
+        }
+      }
+    }
+
+    if(!found){
+      issues.push({key:s.colorKey, msg:`${s.colorKey} snake cannot reach its gate (path blocked)`});
+    }
+  });
+
+  // 4. Gate with no matching snake
+  edGates.forEach(g=>{
+    if(!finished.find(s=>s.colorKey===g.colorKey))
+      issues.push({key:g.colorKey, msg:`Gate for ${g.colorKey} has no matching snake`});
+  });
+
+  return issues;
+}
+
 // ── EXPORT ──
 function edExport(){
   edSnakes.forEach(s=>{if(!s.finished&&s.cells.length>=2)s.finished=true});
@@ -1752,10 +2365,9 @@ function edExport(){
   const id=TOTAL+1;
 
   let lines=[];
-  lines.push(`{id:${id}, name:"${name}", mode:"slide", size:${edSize}, diff:"medium",`);
-  // walls
+  const timeSec=parseInt(document.getElementById('edTimeInput')?.value)||0;
+  lines.push(`{id:${id}, name:"${name}", mode:"slide", size:${edSize}, diff:"medium", timeSec:${timeSec},`);
   lines.push(` walls:[${edWalls.map(([r,c])=>`[${r},${c}]`).join(',')}],`);
-  // snakes
   lines.push(' snakes:[');
   finished.forEach((s,i)=>{
     const col=ED_COLORS.find(c=>c.key===s.colorKey);
@@ -1763,33 +2375,47 @@ function edExport(){
     lines.push(`   {id:${i},color:[${col.rgb.join(',')}],colorKey:'${s.colorKey}',cells:[${cellsStr}]}${i<finished.length-1?',':''}`);
   });
   lines.push(' ],');
-  // gates
   lines.push(' gates:[');
   edGates.forEach((g,i)=>{
-    const col=ED_COLORS.find(c=>c.key===g.colorKey);
     lines.push(`   {colorKey:'${g.colorKey}',color:[${g.color.join(',')}],side:'${g.side}',pos:${g.pos}}${i<edGates.length-1?',':''}`);
   });
   lines.push(' ]');
   lines.push('}');
 
   const code=lines.join('\n');
-  document.getElementById('edModalTa').value=code;
-  document.getElementById('edModalBg').classList.add('show');
 
-  // Validation hints
-  const noGate=finished.filter(s=>!edGates.find(g=>g.colorKey===s.colorKey));
-  if(noGate.length){
-    const names=noGate.map(s=>s.colorKey).join(', ');
-    document.getElementById('edModalTa').value='// ⚠ WARNING: No gate for: '+names+'\n\n'+code;
+  // Run validation
+  const issues=edValidate(finished);
+  let header='';
+  // Show validation results in modal
+  const issuesEl=document.getElementById('edModalIssues');
+  const titleEl=document.getElementById('edModalTtl');
+  if(issues.length){
+    issuesEl.style.display='flex';
+    issuesEl.innerHTML=
+      `<div style="font-size:.7rem;font-weight:800;color:#DC2626;margin-bottom:2px">⚠ ${issues.length} issue${issues.length>1?'s':''} found — level may not be solvable</div>`+
+      issues.map(v=>{
+        const col=ED_COLORS.find(c=>c.key===v.key);
+        const dot=col?`<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${col.hex};margin-right:5px;flex-shrink:0"></span>`:'';
+        return `<div style="display:flex;align-items:center;font-size:.65rem;color:#991B1B;font-family:'IBM Plex Mono',monospace">${dot}${v.msg}</div>`;
+      }).join('');
+    titleEl.textContent='📋 Level Code — ⚠ Issues Found';
+    edSetStatus(`⚠ ${issues.length} issue${issues.length>1?'s':''} — fix before publishing`);
+  } else {
+    issuesEl.style.display='none';
+    titleEl.textContent='📋 Level Code ✓ Valid';
+    edSetStatus('✓ Level valid — ready to export!');
   }
+
+  // Reset modal state
+  document.getElementById('edModalSuccess').style.display='none';
+  document.getElementById('edModalBtns').innerHTML=
+    `<button class="ed-abtn pri" id="edSaveBtn" onclick="edSaveToGame()">✅ Add to Game</button>
+     <button class="ed-abtn grn" onclick="edTestLevel()">▶ Test First</button>
+     <button class="ed-abtn" onclick="document.getElementById('edModalBg').classList.remove('show')">✕ Cancel</button>`;
+  document.getElementById('edModalBg').classList.add('show');
 }
 
-function edCopyCode(){
-  const ta=document.getElementById('edModalTa');
-  ta.select();
-  try{document.execCommand('copy');edSetStatus('✓ Copied to clipboard!')}
-  catch{navigator.clipboard.writeText(ta.value).then(()=>edSetStatus('✓ Copied!'))}
-}
 
 function edTestLevel(){
   // Auto-finish any unfinished snakes with 2+ cells
@@ -1896,6 +2522,7 @@ function edLoadLevel(idStr){
   edInitGrid(); // resize canvas
 
   document.getElementById('edTitleInput').value=lvl.name;
+  if(document.getElementById('edTimeInput'))document.getElementById('edTimeInput').value=lvl.timeSec||0;
   edWalls=(lvl.walls||[]).map(w=>Array.isArray(w)?w:[w.r,w.c]);
   edGates=(lvl.gates||[]).map(g=>({...g}));
   edSnakes=(lvl.snakes||[]).map(s=>({
