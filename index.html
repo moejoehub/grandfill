@@ -159,8 +159,9 @@ canvas{display:block;user-select:none;touch-action:none;cursor:crosshair}
 .ed-title-input:focus{border-color:#E91E8C}
 .ed-size-row{display:flex;gap:5px;align-items:center}
 .ed-size-lbl{font-size:.6rem;font-family:'IBM Plex Mono',monospace;font-weight:700;color:var(--text2);letter-spacing:.06em}
-.ed-size-btn{width:26px;height:26px;border-radius:50%;border:2px solid var(--border);background:var(--bg2);font-size:.7rem;font-weight:800;font-family:'IBM Plex Mono',monospace;cursor:pointer;color:var(--text2);transition:all .15s}
-.ed-size-btn.act{background:#E91E8C;border-color:#E91E8C;color:#fff}
+.ed-size-btn{width:26px;height:26px;border-radius:50%;border:2px solid var(--border);background:var(--bg2);font-size:.85rem;font-weight:800;font-family:'IBM Plex Mono',monospace;cursor:pointer;color:var(--text2);transition:all .15s;line-height:1}
+.ed-size-btn:hover{border-color:#E91E8C;color:#E91E8C}
+.ed-size-val{font-size:.75rem;font-family:'IBM Plex Mono',monospace;font-weight:800;color:var(--text);min-width:34px;text-align:center}
 .ed-canvas-wrap{border:2px solid var(--border);border-radius:10px;overflow:visible;background:transparent;flex-shrink:0;box-shadow:0 4px 20px var(--shadow);margin-bottom:6px;padding:0}
 #edCanvas{display:block;touch-action:none;user-select:none;cursor:crosshair}
 .ed-tools{width:100%;max-width:520px;display:flex;flex-direction:column;gap:5px;flex-shrink:0}
@@ -275,10 +276,9 @@ canvas{display:block;user-select:none;touch-action:none;cursor:crosshair}
     <div style="display:flex;align-items:center;gap:8px">
       <div class="ed-size-row">
         <span class="ed-size-lbl">SIZE</span>
-        <button class="ed-size-btn" onclick="edSetSize(5)">5</button>
-        <button class="ed-size-btn act" onclick="edSetSize(6)">6</button>
-        <button class="ed-size-btn" onclick="edSetSize(7)">7</button>
-        <button class="ed-size-btn" onclick="edSetSize(8)">8</button>
+        <button class="ed-size-btn" onclick="edStepSize(-1)">−</button>
+        <span class="ed-size-val" id="edSizeVal">6×6</span>
+        <button class="ed-size-btn" onclick="edStepSize(1)">+</button>
       </div>
       <button class="bbtn" onclick="goTo('menuScreen')">← Back</button>
     </div>
@@ -849,41 +849,47 @@ function drawSlide(){
     ctx.beginPath();ctx.moveTo(SM,SM+i*CS);ctx.lineTo(SM+gw,SM+i*CS);ctx.stroke();
   }
 
-  // Draw gates
+  // Draw gates — full-slot style matching editor
   lvlDef.gates.forEach(gate=>{
     const matchSnake=getActive().find(s=>s.colorKey===gate.colorKey);
     const adj=matchSnake&&isAdjacentToGate(matchSnake,gate);
-    const gp=gatePixel(gate);
     const[R,G,B]=gate.color;
     const horiz=gate.side==='top'||gate.side==='bottom';
-    const gw2=horiz?CS*.7:SM*.7, gh2=horiz?SM*.7:CS*.7;
 
-    if(adj){ctx.shadowColor=`rgba(${R},${G},${B},.7)`;ctx.shadowBlur=14}
+    // Full margin slot rect
+    let gx,gy,gw2,gh2;
+    const pad=4;
+    if(horiz){
+      gx=SM+gate.pos*CS+pad; gy=gate.side==='top'?pad:SM+gw+pad;
+      gw2=CS-pad*2; gh2=SM-pad*2;
+    } else {
+      gx=gate.side==='left'?pad:SM+gw+pad; gy=SM+gate.pos*CS+pad;
+      gw2=SM-pad*2; gh2=CS-pad*2;
+    }
+    const rad=6;
 
-    // Gate body (pill shape)
-    ctx.fillStyle=`rgba(${R},${G},${B},.95)`;
-    rRect(ctx,gp.x-gw2/2,gp.y-gh2/2,gw2,gh2,Math.min(gw2,gh2)/2);
-    ctx.fill();
+    if(adj){ctx.shadowColor=`rgba(${R},${G},${B},.8)`;ctx.shadowBlur=18;}
 
-    // Arrow pointing outward (exit gates)
-    ctx.fillStyle='rgba(255,255,255,.85)';
-    const as=Math.min(gw2,gh2)*.28;
-    let ax=gp.x,ay=gp.y,adx=0,ady=0;
+    // Fill
+    ctx.fillStyle=`rgba(${R},${G},${B},.92)`;
+    rRect(ctx,gx,gy,gw2,gh2,rad); ctx.fill();
+
+    // Outward arrow
+    ctx.fillStyle='rgba(255,255,255,.9)';
+    const as=Math.min(gw2,gh2)*.32;
+    const cx=gx+gw2/2, cy=gy+gh2/2;
+    let adx=0,ady=0;
     if(gate.side==='top')ady=-1;
     else if(gate.side==='bottom')ady=1;
     else if(gate.side==='left')adx=-1;
     else adx=1;
-    drawTri(ctx,ax,ay,adx,ady,as);
+    drawTri(ctx,cx,cy,adx,ady,as);
 
     ctx.shadowBlur=0;
-    ctx.strokeStyle=`rgba(${R},${G},${B},1)`;ctx.lineWidth=1.5;
-    rRect(ctx,gp.x-gw2/2,gp.y-gh2/2,gw2,gh2,Math.min(gw2,gh2)/2);
-    ctx.stroke();
 
-    // Color label text
-    ctx.fillStyle=`rgba(${R},${G},${B},.8)`;
-    ctx.font=`600 ${Math.round(CS*.18)}px 'IBM Plex Mono',monospace`;
-    ctx.textAlign='center';ctx.textBaseline='middle';
+    // Border
+    ctx.strokeStyle=`rgba(${R},${G},${B},1)`;ctx.lineWidth=2;
+    rRect(ctx,gx,gy,gw2,gh2,rad); ctx.stroke();
   });
 
   // Grid border
@@ -1720,15 +1726,16 @@ function edInitGrid(){
 }
 
 function edSetSize(s){
+  s=Math.max(4,Math.min(20,s));
   if(edSnakes.length||edWalls.length||edGates.length){
     if(!confirm('Changing size will clear all. Continue?'))return;
   }
   edSize=s;edWalls=[];edSnakes=[];edGates=[];edActiveSnakeId=null;
-  document.querySelectorAll('.ed-size-btn').forEach((b,i)=>{
-    b.classList.toggle('act',[5,6,7,8][i]===s);
-  });
+  const lbl=document.getElementById('edSizeVal');
+  if(lbl)lbl.textContent=s+'×'+s;
   edInitGrid();
 }
+function edStepSize(delta){edSetSize(edSize+delta);}
 
 // ── Render the context-sensitive option row based on current tool ──
 function edRenderOptions(){
